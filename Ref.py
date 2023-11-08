@@ -224,8 +224,8 @@ while not done:
             done = True
         elif event.type == pygame.KEYDOWN:
              if event.key == pygame.K_ESCAPE:  # Quit
-                    print("Exit")
-                    pygame.quit()
+                print("Exit")
+                pygame.quit()
              if event.key == pygame.K_s:    # S to save
                  print("Saving Maze")
                  savegrid()
