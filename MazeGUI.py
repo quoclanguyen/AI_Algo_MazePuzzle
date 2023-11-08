@@ -24,7 +24,7 @@ class MazeGrid:
         self.gpath = 4
         self.key = 5
     def get(self, x, y):
-        return self.data[x][y]
+        return int(self.data[x][y])
     def set(self, x, y, value):
         self.data[x][y] = value
     def save(self, filename):
