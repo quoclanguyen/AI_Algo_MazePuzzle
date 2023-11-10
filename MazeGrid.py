@@ -24,6 +24,13 @@ class MazeGrid:
         return sum(x.count(self.start) for x in self.data) == 1
     def hasGoalPoint(self):
         return sum(x.count(self.goal) for x in self.data) == 1
+    def hasGoalPath(self):
+        return sum(x.count(self.gpath) for x in self.data) >= 1
+    def setBackPath(self):
+        for x in range(33):
+            for y in range(33):
+                if self.get(x, y) == self.gpath:
+                    self.set(x, y, self.path)
     def findSGPoint(self):
         start, goal = 0, 0
         for x in range(33):
@@ -33,6 +40,13 @@ class MazeGrid:
                 if self.get(x, y) == self.goal:
                     goal = x, y
         return start, goal
+    def findKeys(self):
+        keys = []
+        for x in range(33):
+            for y in range(33):
+                if self.get(x, y) == self.key: 
+                    keys.append((x, y))
+        return keys
     def fillWall(self):
         for x in range(33):
             for y in range(33):
@@ -57,5 +71,3 @@ class MazeGrid:
                     if outer_grid[i + direct[k][0]][j + direct[k][1]] != 1:
                         self.neighbors[count].append((i + direct[k][0] - 1, j + direct[k][1] - 1))
                 count += 1
-        print(outer_grid)
-        print(self.neighbors)
