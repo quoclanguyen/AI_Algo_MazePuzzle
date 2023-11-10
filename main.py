@@ -1,6 +1,6 @@
-from MazeGUI import MazeGUI, MazeGrid
+from MazeGUI import MazeGUI
 
-app = MazeGUI(1200, 796, 4, 'Maze Project')
+app = MazeGUI(1300, 796, 4, 'Maze Project')
 app.setGridSize(20, 20)
 app.mainLoop()
 

@@ -1,6 +1,7 @@
 import pygame
 from MazeGrid import MazeGrid
 from PIL import ImageColor
+from MazeAI import a_star
 
 bgColor = ImageColor.getcolor("#FCBF49", "RGB"),
 gridColors = [
@@ -9,7 +10,7 @@ gridColors = [
     ImageColor.getcolor("#D62828", "RGB"),
     ImageColor.getcolor("#5DF95D", "RGB"),
     ImageColor.getcolor("#F77F00", "RGB"),
-    ImageColor.getcolor("#000000", "RGB")
+    ImageColor.getcolor("#E47676", "RGB")
 ]
 
 class MazeGUI:
@@ -20,10 +21,12 @@ class MazeGUI:
         self.margin = margin
         self.caption = caption
         self.done = False
+
     def createMainWindow(self):
         pygame.init()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption(self.caption)
+
     def handleKeyPress(self, key):
         if key == pygame.K_ESCAPE:
             pygame.quit()
@@ -36,11 +39,26 @@ class MazeGUI:
         if key == pygame.K_r:
             self.grid.fillPath()
         if key == pygame.K_RETURN:
-            #self.grid.solve()
-            pass
+            a_star(self.grid)
+
+    def mouseInGrid(self, x, y):
+        return (x < 33) and (y < 33)
+    
     def handleLeftMousePress(self, x, y):
+        # Check whether the mouse hover in the grid
+        if not self.mouseInGrid(x, y):
+            self.grid.generateNeighbors()
+            return
+        
+        # Set grid value
         self.grid.set(x, y, self.grid.wall)
+
     def handleRightMousePress(self, x, y):
+        # Check whether the mouse hover in the grid
+        if not self.mouseInGrid(x, y):
+            return
+        
+        # Set grid value
         if self.grid.get(x, y) in [self.grid.start, self.grid.goal]:
             self.grid.set(x, y, self.grid.path)
             return
@@ -50,9 +68,17 @@ class MazeGUI:
         if not self.grid.hasGoalPoint():
             self.grid.set(x, y, self.grid.goal)
             return
+        self.grid.set(x, y, self.grid.path)
+
     def handleMiddleMousePress(self, x, y):
+        # Check whether the mouse hover in the grid
+        if not self.mouseInGrid(x, y):
+            return
+        
+        # Set grid value
         self.grid.set(x, y, self.grid.key)
-    def draw(self):
+
+    def drawGrid(self):
         self.screen.fill(bgColor)
         for row in range(33):
             for col in range(33):
@@ -66,8 +92,19 @@ class MazeGUI:
                 ]
                 pygame.draw.rect(self.screen, color, rect)
         pygame.display.flip()
+
     def setGridSize(self, gwidth, gheight):
         self.grid.width, self.grid.height = gwidth, gheight
+
+    def drawButtons(self):
+        btnBFS = [
+            0,
+            0,
+            40,
+            10
+        ]
+        pygame.draw.rect(self.screen, gridColors[self.grid.gpath], btnBFS)
+
     def mainLoop(self):
         self.createMainWindow()
         LEFT_MOUSE = 0
@@ -77,7 +114,7 @@ class MazeGUI:
             mousePos = pygame.mouse.get_pos()
             row = mousePos[0] // (self.grid.height + self.margin)
             col = mousePos[1] // (self.grid.width + self.margin)
-            print(mousePos)
+            # print(mousePos)
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT:
                     self.done = True
@@ -89,7 +126,8 @@ class MazeGUI:
                     self.handleMiddleMousePress(col, row)
                 elif pygame.mouse.get_pressed()[RIGHT_MOUSE]:
                     self.handleRightMousePress(col, row)
-            self.draw()
+            self.drawGrid()
+            self.drawButtons()
             clock = pygame.time.Clock()
             clock.tick(60)
         pygame.quit()
