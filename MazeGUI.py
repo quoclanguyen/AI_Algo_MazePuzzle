@@ -25,9 +25,9 @@ class MazeGUI:
         if key == pygame.K_ESCAPE:
             pygame.quit()
         if key == pygame.K_s:
-            self.grid.save('savedMaze.txt')
+            self.grid.save('.\maze\savedMaze.txt')
         if key == pygame.K_l:
-            self.grid.load('defaultMaze.txt')
+            self.grid.load('.\maze\defaultMaze.txt')
         if key == pygame.K_f:
             self.grid.fillWall()
         if key == pygame.K_r:

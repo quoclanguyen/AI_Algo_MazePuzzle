@@ -21,7 +21,7 @@ def move(GUI, Grid, came_from, current):
         ]
         rectList.append((rect, current[0], current[1]))
     for rect in rectList[::-1]:
-        time.sleep(0.1)
+        time.sleep(0.03)
         color = GUI.screen.get_at((rect[0][0] + 4, rect[0][1] + 4))[:3]
         if color == colorData.gridColors[Grid.gpath]:
             pygame.draw.rect(GUI.screen, colorData.darkerPath, rect[0])
@@ -38,6 +38,7 @@ def heuristics(p1, p2):
 def a_star_with_key(GUI, Grid):
     start, end = Grid.findSGPoint()
     keys = Grid.findKeys()
+    keys.sort(key = lambda x: heuristics(start, x))
     keys.insert(0, start)
     keys.append(end)
 
@@ -83,7 +84,7 @@ def a_star(GUI, Grid, start, end):
             if temp_g_score < g_score[nei[0]*33 + nei[1]]:
                 came_from[nei] = current
                 g_score[nei[0]*33 + nei[1]] = temp_g_score
-                f_score[nei[0]*33 + nei[1]] = temp_g_score + heuristics(nei, end)
+                f_score[nei[0]*33 + nei[1]] = temp_g_score + heuristics(nei, end)   # f = g + h
                 if nei not in states_history:
                     count += 1
                     states.put((f_score[nei[0]*33 +nei[1]], count, nei))
@@ -94,8 +95,8 @@ def bfs(Grid):
     start, end = Grid.findSGPoint()
     Grid.generateNeighbors()
     count = 0
-    states = PriorityQueue()
-    states.put((count, start))
+    states = []
+    states.append(([start], start))
     states_history = {start}
     came_from = {}
 
@@ -106,7 +107,8 @@ def bfs(Grid):
             move(Grid, came_from, end)
             return True
         for nei in Grid.neighbors[current[0]*33 + current[1]]: # grid around current point
-            pass
+            came_from[nei] = current
+        
 
     
     return False
