@@ -13,3 +13,5 @@ class colors:
             getcolor("#EDA1A1")
         ]
         self.darkerPath = getcolor("#AE460A")
+        self.textFG = getcolor("#284483")
+        self.textBG = getcolor("#F48749")
