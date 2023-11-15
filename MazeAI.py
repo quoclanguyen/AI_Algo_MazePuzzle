@@ -46,7 +46,7 @@ def find_path_with_key(GUI, Grid, algo):
     keys.append(end)
     
     algo_name = {
-        "A-star": "a_star", 
+        "Astar": "a_star", 
         "BFS": "bfs", 
         "DFS": "dfs", 
         "UCS": "ucs"

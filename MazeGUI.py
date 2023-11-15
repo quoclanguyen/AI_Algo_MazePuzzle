@@ -2,6 +2,7 @@ import pygame
 from MazeGrid import MazeGrid
 from MazeAI import find_path_with_key
 from colors import colors
+from PygameComponents import Button
 
 colorsData = colors()
 
@@ -41,14 +42,6 @@ class MazeGUI:
             self.grid.fillWall()
         if key == pygame.K_r:
             self.grid.fillPath()
-        if key == pygame.K_u:
-            self.go("UCS")
-        if key == pygame.K_RETURN:
-            self.go("A-star")
-        if key == pygame.K_b:
-            self.go("BFS")
-        if key == pygame.K_d:
-            self.go("DFS")
     def mouseInGrid(self, x, y):
         return (x < self.grid.size) and (y < self.grid.size)
     
@@ -112,18 +105,30 @@ class MazeGUI:
     def setGridSize(self, gwidth, gheight):
         self.grid.width, self.grid.height = gwidth, gheight
 
+    def astarButton(self):
+        self.buttons["Astar"].changeImg("./images/Astar_pressed.png")
+        self.go("Astar")
+
     def drawButtons(self):
-        btnAstar = [
-            round(self.width*0.65),
-            round(self.height*0.1),
-            self.grid.width * 5, 
-            self.grid.height * 3
+        btnNames = [
+            "./images/Astar.png",
+            "./images/BFS.png",
+            "./images/DFS.png",
+            "./images/Greedy.png",
+            "./images/UCS.png",
+            "./images/ID.png",
+            "./images/Hill.png",
         ]
-        pygame.draw.rect(self.screen, colorsData.gridColors[self.grid.gpath], btnAstar)
-        self.screen.blit(
-            self.font.render('A-star', True, colorsData.textFG, colorsData.textBG), 
-            btnAstar)
-        pygame.display.flip()
+        self.buttons = {}
+        for i in range(len(btnNames)):
+            algo = btnNames[i].split("/")[-1].split(".")[0]
+            self.buttons[algo] = Button(
+                self.width - 300, 
+                self.margin + 100 * i, 
+                btnNames[i],
+                0.5
+            )
+        self.buttons["Astar"].draw(self.screen, self.astarButton)
 
     def mainLoop(self):
         self.createMainWindow()
@@ -147,7 +152,7 @@ class MazeGUI:
                     self.handleMiddleMousePress(col, row)
                 elif pygame.mouse.get_pressed()[RIGHT_MOUSE]:
                     self.handleRightMousePress(col, row)
-            # self.drawButtons()
+            self.drawButtons()
             self.drawGrid()
             self.clock.tick(60)
         
