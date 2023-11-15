@@ -1,7 +1,6 @@
-import pygame, time
+import pygame
 from MazeGrid import MazeGrid
-from PIL import ImageColor
-from MazeAI import a_star_with_key
+from MazeAI import find_path_with_key
 from colors import colors
 
 colorsData = colors()
@@ -33,9 +32,20 @@ class MazeGUI:
         if key == pygame.K_r:
             self.grid.fillPath()
         if key == pygame.K_RETURN:
+            if self.grid.hasGoalPath():
+                self.grid.setBackPath()
             if (self.grid.hasStartPoint() and self.grid.hasGoalPoint()):
-                a_star_with_key(self, self.grid)
-
+                find_path_with_key(self, self.grid, "A-star")
+        if key == pygame.K_b:
+            if self.grid.hasGoalPath():
+                self.grid.setBackPath()
+            if (self.grid.hasStartPoint() and self.grid.hasGoalPoint()):
+                find_path_with_key(self, self.grid, "BFS")
+        if key == pygame.K_d:
+            if self.grid.hasGoalPath():
+                self.grid.setBackPath()
+            if (self.grid.hasStartPoint() and self.grid.hasGoalPoint()):
+                find_path_with_key(self, self.grid, "DFS")
     def mouseInGrid(self, x, y):
         return (x < 33) and (y < 33)
     

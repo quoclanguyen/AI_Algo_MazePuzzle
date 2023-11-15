@@ -1,6 +1,7 @@
 from queue import PriorityQueue
 import time
 import pygame
+import numpy as np
 from colors import colors
 colorData = colors()
 
@@ -29,27 +30,37 @@ def move(GUI, Grid, came_from, current):
             pygame.draw.rect(GUI.screen, colorData.gridColors[Grid.gpath], rect[0])
         pygame.display.update()
         pygame.display.flip()
+    return len(rectList) + 1
 
 def heuristics(p1, p2):
     x1, y1 = p1
     x2, y2 = p2
-    return abs(x1 - x2) + abs(y1 - y2)
+    return np.sqrt((x1 - x2)**2 + (y1 - y2)**2)
 
-def a_star_with_key(GUI, Grid):
+def find_path_with_key(GUI, Grid, algo):
     start, end = Grid.findSGPoint()
     keys = Grid.findKeys()
-    keys.sort(key = lambda x: heuristics(start, x))
+    if algo == "A-star":
+        keys.sort(key = lambda x: heuristics(start, x))
     keys.insert(0, start)
     keys.append(end)
+    total_moves = 0
+    algo_name = {"A-star": "a_star", "BFS": "bfs", "DFS":"dfs"}
 
     if len(keys) != 2:
-        for i in range(len(keys) - 1):
+        Grid.set(*end, Grid.wall)
+        for i in range(len(keys) - 2):
             s = keys[i]
             e = keys[i + 1]
-            a_star(GUI, Grid, s, e)
-        time.sleep(3)
+            total_moves += globals()[algo_name[algo]](GUI, Grid, s, e)
+        Grid.set(*end, Grid.goal)
+        total_moves += globals()[algo_name[algo]](GUI, Grid, keys[-2], keys[-1])
+        print("Moves played with {}:".format(algo), total_moves)
+        time.sleep(1)
         return
-    a_star(GUI, Grid, start, end)
+    total_moves = globals()[algo_name[algo]](GUI, Grid, start, end)
+    print("Moves played with {}:".format(algo), total_moves)
+
 
 def a_star(GUI, Grid, start, end):
     Grid.generateNeighbors()
@@ -77,8 +88,7 @@ def a_star(GUI, Grid, start, end):
         current = states.get()[2] # start point
         states_history.remove(current)
         if current == end:
-            move(GUI, Grid, came_from, end)
-            return True
+            return move(GUI, Grid, came_from, end)
         for nei in Grid.neighbors[current[0]*33 + current[1]]: # grid around current point
             temp_g_score = g_score[current[0]*33 + current[1]] + 1
             if temp_g_score < g_score[nei[0]*33 + nei[1]]:
@@ -91,25 +101,55 @@ def a_star(GUI, Grid, start, end):
                     states_history.add(nei)
     return False
 
-def bfs(Grid):
-    start, end = Grid.findSGPoint()
+def bfs(GUI, Grid, start, end):
     Grid.generateNeighbors()
+
     count = 0
     states = []
-    states.append(([start], start))
+    states.append((count, start))
     states_history = {start}
     came_from = {}
 
-    while not states.empty():
-        current = states.get()[2]
-        states_history.remove(current)
+    while len(states) != 0:
+        current = states.pop(0)[1]
         if current == end:
-            move(Grid, came_from, end)
-            return True
+            came_from.pop(start)
+            return move(GUI, Grid, came_from, end)
         for nei in Grid.neighbors[current[0]*33 + current[1]]: # grid around current point
-            came_from[nei] = current
-        
+            if (nei in came_from):
+                if (came_from[nei] not in came_from):
+                    came_from[nei] = current
+            else:
+                came_from[nei] = current
 
-    
+            if nei not in states_history:
+                count += 1
+                states.append((count, nei))
+                states_history.add(nei)
     return False
-    
+
+def dfs(GUI, Grid, start, end):
+    Grid.generateNeighbors()
+    count = 0
+    states = []
+    states.append((count, start))
+    states_history = {start}
+    came_from = {}
+
+    while len(states) != 0:
+        current = states.pop()[1]
+        if current == end:
+            came_from.pop(start)
+            return move(GUI, Grid, came_from, end)
+        for nei in Grid.neighbors[current[0]*33 + current[1]]: # grid around current point
+            if (nei in came_from):
+                if (came_from[nei] not in came_from):
+                    came_from[nei] = current
+            else:
+                came_from[nei] = current
+
+            if nei not in states_history:
+                count += 1
+                states.append((count, nei))
+                states_history.add(nei)
+    return False
