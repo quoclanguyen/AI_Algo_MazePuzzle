@@ -54,8 +54,11 @@ def find_path_with_key(GUI, Grid, algo):
             s = keys[i]
             e = keys[i + 1]
             algo_details += globals()[algo_name[algo]](GUI, Grid, s, e)
+            if algo_details[0] == 0:
+                break
         Grid.set(*end, Grid.goal)
-        algo_details += globals()[algo_name[algo]](GUI, Grid, keys[-2], keys[-1])
+        if algo_details[0] != 0:
+            algo_details += globals()[algo_name[algo]](GUI, Grid, keys[-2], keys[-1])
     else:
         algo_details += globals()[algo_name[algo]](GUI, Grid, start, end)
     
@@ -102,7 +105,7 @@ def a_star(GUI, Grid, start, end):
                     count += 1
                     states.put((f_score[nei[0]*33 +nei[1]], count, nei))
                     states_history.add(nei)
-    return False
+    return 0, 0
 
 def bfs(GUI, Grid, start, end):
     Grid.generateNeighbors()
@@ -129,7 +132,7 @@ def bfs(GUI, Grid, start, end):
                 count += 1
                 states.append((count, nei))
                 states_history.add(nei)
-    return False
+    return 0, 0
 
 def dfs(GUI, Grid, start, end):
     Grid.generateNeighbors()
@@ -155,4 +158,4 @@ def dfs(GUI, Grid, start, end):
                 count += 1
                 states.append((count, nei))
                 states_history.add(nei)
-    return False
+    return 0, 0
