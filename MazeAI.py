@@ -45,7 +45,12 @@ def find_path_with_key(GUI, Grid, algo):
     keys.insert(0, start)
     keys.append(end)
     
-    algo_name = {"A-star": "a_star", "BFS": "bfs", "DFS":"dfs"}
+    algo_name = {
+        "A-star": "a_star", 
+        "BFS": "bfs", 
+        "DFS": "dfs", 
+        "UCS": "ucs"
+    }
     algo_details = []
     
     if len(keys) != 2:
@@ -67,7 +72,6 @@ def find_path_with_key(GUI, Grid, algo):
     print("Moves played with {}:".format(algo), total_moves)
     print("Nodes visited: {}\n".format(nodes_visited))
 
-
 def a_star(GUI, Grid, start, end):
     Grid.generateNeighbors()
             
@@ -86,24 +90,52 @@ def a_star(GUI, Grid, start, end):
     # inf inf inf
 
     g_score = [float("inf") for row in Grid.data for _ in row]
-    g_score[start[0]*33 + start[1]] = 0
+    g_score[start[0]*Grid.size + start[1]] = 0
     f_score = [float("inf") for row in Grid.data for _ in row]
-    f_score[start[0]*33 + start[1]] = heuristics(start, end)
+    f_score[start[0]*Grid.size + start[1]] = heuristics(start, end)
 
     while not states.empty():
         current = states.get()[2] # start point
         states_history.remove(current)
         if current == end:
             return move(GUI, Grid, came_from, end), count
-        for nei in Grid.neighbors[current[0]*33 + current[1]]: # grid around current point
-            temp_g_score = g_score[current[0]*33 + current[1]] + 1
-            if temp_g_score < g_score[nei[0]*33 + nei[1]]:
+        for nei in Grid.neighbors[current[0]*Grid.size + current[1]]: # grid around current point
+            temp_g_score = g_score[current[0]*Grid.size + current[1]] + 1
+            if temp_g_score < g_score[nei[0]*Grid.size + nei[1]]:
                 came_from[nei] = current
-                g_score[nei[0]*33 + nei[1]] = temp_g_score
-                f_score[nei[0]*33 + nei[1]] = temp_g_score + heuristics(nei, end)   # f = g + h
+                g_score[nei[0]*Grid.size + nei[1]] = temp_g_score
+                f_score[nei[0]*Grid.size + nei[1]] = temp_g_score + heuristics(nei, end)   # f = g + h
                 if nei not in states_history:
                     count += 1
-                    states.put((f_score[nei[0]*33 +nei[1]], count, nei))
+                    states.put((f_score[nei[0]*Grid.size +nei[1]], count, nei))
+                    states_history.add(nei)
+    return 0, 0
+
+def ucs(GUI, Grid, start, end):
+    Grid.generateNeighbors()
+            
+    count = 0
+    states = PriorityQueue()
+    states.put((0, count, start))
+    states_history = {start}
+    came_from = {}
+
+    g_score = [float("inf") for row in Grid.data for _ in row]
+    g_score[start[0] * Grid.size + start[1]] = 0
+
+    while not states.empty():
+        current = states.get()[2] # start point
+        states_history.remove(current)
+        if current == end:
+            return move(GUI, Grid, came_from, end), count
+        for nei in Grid.neighbors[current[0]*Grid.size + current[1]]: # grid around current point
+            temp_g_score = g_score[current[0]*Grid.size + current[1]] + 1
+            if temp_g_score < g_score[nei[0]*Grid.size + nei[1]]:
+                came_from[nei] = current
+                g_score[nei[0]*Grid.size + nei[1]] = temp_g_score
+                if nei not in states_history:
+                    count += 1
+                    states.put((g_score[nei[0]*Grid.size + nei[1]], count, nei))
                     states_history.add(nei)
     return 0, 0
 
@@ -121,7 +153,7 @@ def bfs(GUI, Grid, start, end):
         if current == end:
             came_from.pop(start)
             return move(GUI, Grid, came_from, end), count
-        for nei in Grid.neighbors[current[0]*33 + current[1]]: # grid around current point
+        for nei in Grid.neighbors[current[0]*Grid.size + current[1]]: # grid around current point
             if (nei in came_from):
                 if (came_from[nei] not in came_from):
                     came_from[nei] = current
@@ -147,7 +179,7 @@ def dfs(GUI, Grid, start, end):
         if current == end:
             came_from.pop(start)
             return move(GUI, Grid, came_from, end), count
-        for nei in Grid.neighbors[current[0]*33 + current[1]]: # grid around current point
+        for nei in Grid.neighbors[current[0]*Grid.size + current[1]]: # grid around current point
             if (nei in came_from):
                 if (came_from[nei] not in came_from):
                     came_from[nei] = current

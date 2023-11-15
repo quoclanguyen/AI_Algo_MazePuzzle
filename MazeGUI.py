@@ -6,8 +6,8 @@ from colors import colors
 colorsData = colors()
 
 class MazeGUI:
-    def __init__(self, width, height, margin, caption):
-        self.grid = MazeGrid()
+    def __init__(self, width, height, margin, size, caption):
+        self.grid = MazeGrid(size)
         self.width = width
         self.height = height
         self.margin = margin
@@ -41,6 +41,8 @@ class MazeGUI:
             self.grid.fillWall()
         if key == pygame.K_r:
             self.grid.fillPath()
+        if key == pygame.K_u:
+            self.go("UCS")
         if key == pygame.K_RETURN:
             self.go("A-star")
         if key == pygame.K_b:
@@ -48,7 +50,7 @@ class MazeGUI:
         if key == pygame.K_d:
             self.go("DFS")
     def mouseInGrid(self, x, y):
-        return (x < 33) and (y < 33)
+        return (x < self.grid.size) and (y < self.grid.size)
     
     def handleLeftMousePress(self, x, y):
         # Check whether the mouse hover in the grid
@@ -91,8 +93,8 @@ class MazeGUI:
         self.grid.set(x, y, self.grid.key)
 
     def drawGrid(self):
-        for row in range(33):
-            for col in range(33):
+        for row in range(self.grid.size):
+            for col in range(self.grid.size):
                 colorID = self.grid.get(row, col)
                 color = colorsData.gridColors[colorID]
                 rect = [
@@ -145,7 +147,7 @@ class MazeGUI:
                     self.handleMiddleMousePress(col, row)
                 elif pygame.mouse.get_pressed()[RIGHT_MOUSE]:
                     self.handleRightMousePress(col, row)
-            self.drawButtons()
+            # self.drawButtons()
             self.drawGrid()
             self.clock.tick(60)
         

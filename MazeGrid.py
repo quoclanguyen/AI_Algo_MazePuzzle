@@ -1,9 +1,10 @@
 import numpy
 
 class MazeGrid:
-    def __init__(self):
-        self.data = [[0 for x in range(33)] for y in range(33)]
-        self.neighbors = [[] for _ in range(33**2)]
+    def __init__(self, size):
+        self.size = size
+        self.data = [[0 for x in range(self.size)] for y in range(self.size)]
+        self.neighbors = [[] for _ in range(self.size**2)]
         self.weight = 0
         self.height = 0
         self.path = 0
@@ -27,14 +28,14 @@ class MazeGrid:
     def hasGoalPath(self):
         return sum(x.count(self.gpath) for x in self.data) >= 1
     def setBackPath(self):
-        for x in range(33):
-            for y in range(33):
+        for x in range(self.size):
+            for y in range(self.size):
                 if self.get(x, y) == self.gpath:
                     self.set(x, y, self.path)
     def findSGPoint(self):
         start, goal = 0, 0
-        for x in range(33):
-            for y in range(33):
+        for x in range(self.size):
+            for y in range(self.size):
                 if self.get(x, y) == self.start:
                     start = x, y
                 if self.get(x, y) == self.goal:
@@ -42,31 +43,31 @@ class MazeGrid:
         return start, goal
     def findKeys(self):
         keys = []
-        for x in range(33):
-            for y in range(33):
+        for x in range(self.size):
+            for y in range(self.size):
                 if self.get(x, y) == self.key: 
                     keys.append((x, y))
         return keys
     def fillWall(self):
-        for x in range(33):
-            for y in range(33):
+        for x in range(self.size):
+            for y in range(self.size):
                 self.set(x, y, self.wall)
     def fillPath(self):
-        for x in range(33):
-            for y in range(33):
+        for x in range(self.size):
+            for y in range(self.size):
                 self.set(x, y, self.path)
     def generateNeighbors(self):
         count = 0
         direct = [[-1, 0], [0, -1], [1, 0], [0, 1]]
         outer_grid = []
-        self.neighbors = [[] for _ in range(33**2)]
-        for i in range(35):
-            if i == 0 or i == 34:
-                outer_grid.append([1 for _ in range(35)])
+        self.neighbors = [[] for _ in range(self.size**2)]
+        for i in range(self.size + 2):
+            if i == 0 or i == self.size + 1:
+                outer_grid.append([1 for _ in range(self.size + 2)])
                 continue
             outer_grid.append([1] + self.data[i - 1] + [1])
-        for i in range(1, 34):
-            for j in range(1, 34):
+        for i in range(1, self.size + 1):
+            for j in range(1, self.size + 1):
                 for k in range(4):
                     if outer_grid[i + direct[k][0]][j + direct[k][1]] != 1:
                         self.neighbors[count].append((i + direct[k][0] - 1, j + direct[k][1] - 1))
