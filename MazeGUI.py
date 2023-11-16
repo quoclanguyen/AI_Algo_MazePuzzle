@@ -106,7 +106,6 @@ class MazeGUI:
         self.grid.width, self.grid.height = gwidth, gheight
 
     def astarButton(self):
-        self.buttons["Astar"].changeImg("./images/Astar_pressed.png")
         self.go("Astar")
 
     def drawButtons(self):
@@ -128,7 +127,9 @@ class MazeGUI:
                 btnNames[i],
                 0.5
             )
-        self.buttons["Astar"].draw(self.screen, self.astarButton)
+        self.buttons["Astar"].draw(self.screen, lambda: self.go("Astar"))
+        self.buttons["BFS"].draw(self.screen, lambda: self.go("BFS"))
+        self.buttons["DFS"].draw(self.screen, lambda: self.go("DFS"))
 
     def mainLoop(self):
         self.createMainWindow()
@@ -155,7 +156,7 @@ class MazeGUI:
             self.drawButtons()
             self.drawGrid()
             self.clock.tick(60)
+        self.drawBackground()
         
-        pygame.quit()
 
     
