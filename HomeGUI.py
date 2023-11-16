@@ -14,6 +14,8 @@ class HomeGUI:
         self.margin = 3
         self.resize = False
         self.done = False
+        self.ai = False
+        self.human = False
         self.clock = pygame.time.Clock()
     def createMainWindow(self):
         pygame.init()
@@ -60,6 +62,9 @@ class HomeGUI:
                 rect.y))
             pygame.display.flip()    
     def startButton(self):
+        if self.ai == False and self.human == False:
+            print("You must choose game mode")
+            return
         MazeApp(self.size)
         self.drawBackground()
     def exitButton(self):
@@ -84,7 +89,12 @@ class HomeGUI:
         )
         self.slider.draw(self.screen)
         self.drawDragger()
-
+    def aiButton(self):
+        self.human = False
+        self.ai = True
+    def humanButton(self):
+        self.human = True
+        self.ai = False
     def sizeButton(self):
         self.resize = True
     def okButton(self):
@@ -110,9 +120,41 @@ class HomeGUI:
                 0.5
             )
         
+        ai_disabled = "./images/AI_disabled.png"
+        human_disabled = "./images/Human_disabled.png"
+        ai_enabled = "./images/AI.png"
+        human_enabled = "./images/Human.png"
+        aiSrc = ai_enabled
+        humanSrc = human_enabled
+
+        if self.ai == True:
+            aiSrc = ai_enabled
+            humanSrc = human_disabled
+        if self.human == True:
+            aiSrc = ai_disabled
+            humanSrc = human_enabled
+            
+        self.buttons["AI"] = Button(
+            (self.width + 279/2)//2, 
+            self.height - 200,
+            aiSrc,
+            0.5
+        )
+        self.buttons["Human"] = Button(
+            (self.width + 279/2)//2 - 279, 
+            self.height - 200,
+            humanSrc,
+            0.5
+        )
+
         self.buttons["Start"].draw(self.screen, self.startButton)
         self.buttons["Exit"].draw(self.screen, self.exitButton)
         self.buttons["Size"].draw(self.screen, self.sizeButton)
+        self.buttons["Human"].draw(self.screen, self.humanButton)
+        self.buttons["AI"].draw(self.screen, self.aiButton)
+        
+
+
         pygame.display.flip()
         if self.resize == False:
             self.clearSlider()
