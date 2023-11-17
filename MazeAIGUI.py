@@ -6,7 +6,7 @@ from PygameComponents import Button
 
 colorsData = colors()
 
-class MazeGUI:
+class MazeAIGUI:
     def __init__(self, width, height, margin, size, caption):
         self.grid = MazeGrid(size)
         self.width = width
@@ -122,14 +122,19 @@ class MazeGUI:
         for i in range(len(btnNames)):
             algo = btnNames[i].split("/")[-1].split(".")[0]
             self.buttons[algo] = Button(
-                self.width - 300, 
+                self.width - 340/2, 
                 self.margin + 100 * i, 
                 btnNames[i],
                 0.5
             )
+        
         self.buttons["Astar"].draw(self.screen, lambda: self.go("Astar"))
         self.buttons["BFS"].draw(self.screen, lambda: self.go("BFS"))
         self.buttons["DFS"].draw(self.screen, lambda: self.go("DFS"))
+        self.buttons["Greedy"].draw(self.screen, lambda: self.go("DFS"))
+        self.buttons["UCS"].draw(self.screen, lambda: self.go("DFS"))
+        self.buttons["ID"].draw(self.screen, lambda: self.go("DFS"))
+        self.buttons["Hill"].draw(self.screen, lambda: self.go("DFS"))
 
     def mainLoop(self):
         self.createMainWindow()

@@ -7,7 +7,7 @@ colorsData = colors()
 
 class HomeGUI:
     def __init__(self, width, height, caption):
-        self.size = 20
+        self.size = 60
         self.width = width
         self.height = height
         self.caption = caption
@@ -17,6 +17,7 @@ class HomeGUI:
         self.ai = False
         self.human = False
         self.clock = pygame.time.Clock()
+        self.levels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120]
     def createMainWindow(self):
         pygame.init()
         self.screen = pygame.display.set_mode((self.width, self.height))
@@ -73,13 +74,22 @@ class HomeGUI:
         self.dragger.rectx = mousePos[0]
         self.drawSlider()
     def drawDragger(self):
+        # 11 level of size: 10, 20, 30, 40, 50
+        # 60
+        # 70, 80, 90, 100, 120
+        level = {}
+        count = -5
+        for item in self.levels:
+            level[item] = count
+            count += 1
         self.dragger = Dragger(
-            (self.width - 63/2)//2,
+            (self.width - (63 - level[self.size]*108)/2)//2,
             (self.slider.rect[1] - 9),
             "./images/Dragger.png",
             0.5
         )
         self.dragger.draw(self.screen)
+        pygame.time.delay(45)
     def drawSlider(self):
         self.slider = Slider(
             (self.width - 657/2)//2,
@@ -88,7 +98,6 @@ class HomeGUI:
             0.5
         )
         self.slider.draw(self.screen)
-        self.drawDragger()
     def aiButton(self):
         self.human = False
         self.ai = True
@@ -101,10 +110,14 @@ class HomeGUI:
         self.resize = False
         self.clearSlider()
     def prevButton(self):
-        return
+        index = self.levels.index(self.size)
+        if index > 0:
+            self.size = self.levels[index - 1]
     def nextButton(self):
-        return
-    def drawButtons(self):
+        index = self.levels.index(self.size)
+        if index < len(self.levels) - 1:
+            self.size = self.levels[index + 1]
+    def drawing(self):
         btnNames = [
             "./images/Start.png",
             "./images/Exit.png",
@@ -152,14 +165,21 @@ class HomeGUI:
         self.buttons["Size"].draw(self.screen, self.sizeButton)
         self.buttons["Human"].draw(self.screen, self.humanButton)
         self.buttons["AI"].draw(self.screen, self.aiButton)
+        self.font = pygame.font.Font('font\Comfortaa-Regular.ttf', 25)
+        currentSize = self.font.render("Current size: " + str(self.size), True, colorsData.darkerPath)
         
-
-
         pygame.display.flip()
         if self.resize == False:
             self.clearSlider()
             return
+        self.clearSlider()
         self.drawSlider()
+        self.drawDragger()
+        self.screen.blit(
+            currentSize, 
+            (self.slider.rect.left - 250, 
+            self.slider.rect.y)
+        )
         self.buttons["OK"] = Button(
             self.slider.rect.right + 70, 
             self.slider.rect.y - 18, 
@@ -192,7 +212,7 @@ class HomeGUI:
                     self.done = True
                 elif event.type == pygame.KEYDOWN:
                     self.handleKeyPress(event.key)
-            self.drawButtons()
+            self.drawing()
             self.clock.tick(60)
         pygame.quit()
 
