@@ -35,9 +35,9 @@ class MazeAIGUI:
         if key == pygame.K_ESCAPE:
             pygame.quit()
         if key == pygame.K_s:
-            self.grid.save('.\maze\savedMaze.txt')
+            self.grid.save('.\maze\{}\savedMaze.txt'.format(self.grid.size))
         if key == pygame.K_l:
-            self.grid.load('.\maze\defaultMaze.txt')
+            self.grid.load('.\maze\{}\defaultMaze.txt'.format(self.grid.size))
         if key == pygame.K_f:
             self.grid.fillWall()
         if key == pygame.K_r:
@@ -49,7 +49,7 @@ class MazeAIGUI:
         # Check whether the mouse hover in the grid
         if not self.mouseInGrid(x, y):
             return
-        # if ()
+        
         if self.grid.hasGoalPath():
             self.grid.setBackPath()
         # Set grid value
@@ -86,6 +86,10 @@ class MazeAIGUI:
         self.grid.set(x, y, self.grid.key)
 
     def drawGrid(self):
+        playerImg = pygame.image.load("./images/player.png").convert_alpha()
+        playerImg = pygame.transform.scale(playerImg, (self.grid.width, self.grid.height))
+        goalImg = pygame.image.load("./images/goal.png").convert_alpha()
+        goalImg = pygame.transform.scale(goalImg, (self.grid.width, self.grid.height))
         for row in range(self.grid.size):
             for col in range(self.grid.size):
                 colorID = self.grid.get(row, col)
@@ -96,7 +100,14 @@ class MazeAIGUI:
                     self.grid.width, 
                     self.grid.height
                 ]
-                pygame.draw.rect(self.screen, color, rect)
+                if colorID == self.grid.gpath:
+                    continue
+                if colorID != self.grid.goal and colorID != self.grid.start:
+                    pygame.draw.rect(self.screen, color, rect)
+                if colorID == self.grid.start:
+                    self.screen.blit(playerImg, rect)
+                if colorID == self.grid.goal:
+                    self.screen.blit(goalImg, rect)
         pygame.display.flip()
 
     def drawBackground(self):
@@ -116,7 +127,8 @@ class MazeAIGUI:
             "./images/Greedy.png",
             "./images/UCS.png",
             "./images/ID.png",
-            "./images/Hill.png",
+            "./images/Beam.png",
+            "./images/Exit.png",
         ]
         self.buttons = {}
         for i in range(len(btnNames)):
@@ -131,14 +143,17 @@ class MazeAIGUI:
         self.buttons["Astar"].draw(self.screen, lambda: self.go("Astar"))
         self.buttons["BFS"].draw(self.screen, lambda: self.go("BFS"))
         self.buttons["DFS"].draw(self.screen, lambda: self.go("DFS"))
-        self.buttons["Greedy"].draw(self.screen, lambda: self.go("DFS"))
-        self.buttons["UCS"].draw(self.screen, lambda: self.go("DFS"))
-        self.buttons["ID"].draw(self.screen, lambda: self.go("DFS"))
-        self.buttons["Hill"].draw(self.screen, lambda: self.go("DFS"))
-
+        self.buttons["Greedy"].draw(self.screen, lambda: self.go("Greedy"))
+        self.buttons["UCS"].draw(self.screen, lambda: self.go("UCS"))
+        self.buttons["ID"].draw(self.screen, lambda: self.go("ID"))
+        self.buttons["Beam"].draw(self.screen, lambda: self.go("Beam"))
+        self.buttons["Exit"].draw(self.screen, self.stop)
+    def stop(self):
+        self.done = True
     def mainLoop(self):
         self.createMainWindow()
         self.drawBackground()
+        self.grid.fillPath()
         LEFT_MOUSE = 0
         MID_MOUSE = 1
         RIGHT_MOUSE = 2

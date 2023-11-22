@@ -5,29 +5,36 @@ import numpy as np
 from colors import colors
 colorData = colors()
 
+def calcDirection(pos1, pos2):
+    x1, y1 = pos1
+    x2, y2 = pos2
+    if (x2 == x1):
+        return "right" if y2 > y1 else "left"
+    return "down" if x2 > x1 else "up"
+
 def move(GUI, Grid, came_from, current):
     rectList = []
     while current in came_from:
-        current = came_from[current]
-        if Grid.get(current[0], current[1]) == Grid.start:
-            continue  
-        if Grid.get(current[0], current[1]) == Grid.key:
-            continue  
-        Grid.set(current[0], current[1], Grid.gpath)
         rect = [
             GUI.margin + (GUI.margin + GUI.grid.width) * current[1], 
             GUI.margin + (GUI.margin + GUI.grid.height) * current[0], 
             GUI.grid.width, 
             GUI.grid.height
         ]
-        rectList.append((rect, current[0], current[1]))
-    for rect in rectList[::-1]:
+        current = came_from[current]
+        if Grid.get(current[0], current[1]) != Grid.start and Grid.get(current[0], current[1]) != Grid.key:
+            Grid.set(current[0], current[1], Grid.gpath)
+        if Grid.get(current[0], current[1]) == Grid.key:
+            continue
+        rectList.append((rect, current))
+    rectList.reverse()
+    for i in range(len(rectList) - 1):
         time.sleep(0.03)
-        color = GUI.screen.get_at((rect[0][0] + 4, rect[0][1] + 4))[:3]
-        if color == colorData.gridColors[Grid.gpath]:
-            pygame.draw.rect(GUI.screen, colorData.darkerPath, rect[0])
-        else:
-            pygame.draw.rect(GUI.screen, colorData.gridColors[Grid.gpath], rect[0])
+        pygame.draw.rect(GUI.screen, colorData.gridColors[Grid.gpath], rectList[i][0])
+        playerPath = "./images/player_{}.png".format(calcDirection(rectList[i][1], rectList[i + 1][1]))
+        playerImg = pygame.image.load(playerPath).convert_alpha()
+        playerImg = pygame.transform.scale(playerImg, (Grid.width, Grid.height))
+        GUI.screen.blit(playerImg, rectList[i][0])
         pygame.display.update()
         pygame.display.flip()
     return len(rectList) + 1
@@ -40,7 +47,7 @@ def heuristics(p1, p2):
 def find_path_with_key(GUI, Grid, algo):
     start, end = Grid.findSGPoint()
     keys = Grid.findKeys()
-    if algo == "A-star":
+    if algo == "Astar":
         keys.sort(key = lambda x: heuristics(start, x))
     keys.insert(0, start)
     keys.append(end)
@@ -49,7 +56,10 @@ def find_path_with_key(GUI, Grid, algo):
         "Astar": "a_star", 
         "BFS": "bfs", 
         "DFS": "dfs", 
-        "UCS": "ucs"
+        "UCS": "ucs",
+        "Greedy": "greedy",
+        "ID": "ideep",
+        "Beam": "beam"
     }
     algo_details = []
     
@@ -125,7 +135,6 @@ def ucs(GUI, Grid, start, end):
 
     while not states.empty():
         current = states.get()[2] # start point
-        states_history.remove(current)
         if current == end:
             return move(GUI, Grid, came_from, end), count
         for nei in Grid.neighbors[current[0]*Grid.size + current[1]]: # grid around current point
@@ -189,5 +198,109 @@ def dfs(GUI, Grid, start, end):
             if nei not in states_history:
                 count += 1
                 states.append((count, nei))
+                states_history.add(nei)
+    return 0, 0
+
+def greedy(GUI, Grid, start, end):
+    Grid.generateNeighbors()
+
+    count = 0
+    states = PriorityQueue()
+    states.put((0, count, start))
+    states_history = {start}
+    came_from = {}
+
+    f_score = [float("inf") for row in Grid.data for _ in row]
+    f_score[start[0]*Grid.size + start[1]] = heuristics(start, end)
+
+    while not states.empty():
+        current = states.get()[2] # start point
+        if current == end:
+            came_from.pop(start, None)
+            return move(GUI, Grid, came_from, end), count
+        for nei in Grid.neighbors[current[0]*Grid.size + current[1]]: # grid around current point
+            f_score[nei[0]*Grid.size + nei[1]] = heuristics(nei, end) 
+            if nei not in states_history:
+                came_from[nei] = current
+                count += 1
+                states.put((f_score[nei[0]*Grid.size + nei[1]], count, nei))
+                states_history.add(nei)
+    return 0, 0
+
+def ideep(GUI, Grid, start, end):
+    Grid.generateNeighbors()
+    count = 0
+    states = []
+    states.append((count, start))
+    states_history = {start}
+    came_from = {}
+    depth = 0
+    depth_limit = 2
+    depth_limit_max = (Grid.size ** 2)
+    while depth_limit <= depth_limit_max:
+        states_history.clear()
+        while len(states) != 0:
+            current = states.pop()[1]
+            depth += 1
+            if current == end:
+                came_from.pop(start)
+                print("Max depth: ", depth_limit)
+                return move(GUI, Grid, came_from, end), count
+            if depth == depth_limit:
+                break
+            for nei in Grid.neighbors[current[0]*Grid.size + current[1]]:
+                if (nei in came_from):
+                    if (came_from[nei] not in came_from):
+                        came_from[nei] = current
+                else:
+                    came_from[nei] = current
+                if nei not in states_history:
+                    count += 1
+                    states.append((count, nei))
+                    states_history.add(nei)
+        if len(states) == 0:
+            states.append((count, start))
+        depth = 0
+        depth_limit += 1
+    return 0, 0
+
+def beam(GUI, Grid, start, end):
+    Grid.generateNeighbors()
+
+    count = 0
+    states = PriorityQueue()
+    states.put((0, count, start))
+    states.put((0, count, start))
+    states_history = {start}
+    came_from = {}
+
+    f_score = [float("inf") for row in Grid.data for _ in row]
+    f_score[start[0]*Grid.size + start[1]] = heuristics(start, end)
+
+    while not states.empty():
+        current_first = states.get()[2] # start point
+        if states.qsize() < 2: 
+            current_second = current_first
+        else:
+            current_second = states.get()[2]
+        if current_first == end:
+            came_from.pop(start, None)
+            return move(GUI, Grid, came_from, end), count
+        if current_second == end:
+            came_from.pop(start, None)
+            return move(GUI, Grid, came_from, end), count
+        for nei in Grid.neighbors[current_first[0]*Grid.size + current_first[1]]:
+            f_score[nei[0]*Grid.size + nei[1]] = heuristics(nei, end)
+            if nei not in states_history:
+                came_from[nei] = current_first
+                count += 1
+                states.put((f_score[nei[0]*Grid.size + nei[1]], count, nei))
+                states_history.add(nei)
+        for nei in Grid.neighbors[current_second[0]*Grid.size + current_second[1]]:
+            f_score[nei[0]*Grid.size + nei[1]] = heuristics(nei, end)
+            if nei not in states_history:
+                came_from[nei] = current_second
+                count += 1
+                states.put((f_score[nei[0]*Grid.size + nei[1]], count, nei))
                 states_history.add(nei)
     return 0, 0

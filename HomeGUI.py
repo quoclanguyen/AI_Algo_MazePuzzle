@@ -2,12 +2,12 @@ import pygame
 from colors import colors
 from PygameComponents import Button, Slider, Dragger
 from MazeApp import MazeApp
-
+from tkinter import messagebox, Tk
 colorsData = colors()
 
 class HomeGUI:
     def __init__(self, width, height, caption):
-        self.size = 60
+        self.size = 10
         self.width = width
         self.height = height
         self.caption = caption
@@ -39,9 +39,9 @@ class HomeGUI:
         self.font = pygame.font.Font('font\Comfortaa-Regular.ttf', 25)
         infos = [
             "AI Project - Group 5:",
-            "21110837 - Nguyễn Quốc Lân",
-            "21110822 - Võ Minh Đạt",
-            "21110154 - Trần Đình Duy",
+            "21110837 - Nguyen Quoc Lan",
+            "21110822 - Vo Minh Dat",
+            "21110154 - Tran Dinh Duy",
             "Solving maze game using AI search algorithms"
         ]
         for i in range(len(infos)):
@@ -64,7 +64,13 @@ class HomeGUI:
             pygame.display.flip()    
     def startButton(self):
         if self.ai == False and self.human == False:
-            print("You must choose game mode")
+            tempTk = Tk()
+            tempTk.withdraw()
+            messagebox.showwarning(
+                "Notification",
+                "You must choose a game mode"
+            )
+            tempTk.destroy()
             return
         MazeApp(self.size)
         self.drawBackground()
@@ -89,7 +95,7 @@ class HomeGUI:
             0.5
         )
         self.dragger.draw(self.screen)
-        pygame.time.delay(45)
+        pygame.time.delay(60)
     def drawSlider(self):
         self.slider = Slider(
             (self.width - 657/2)//2,

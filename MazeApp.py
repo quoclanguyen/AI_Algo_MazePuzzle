@@ -7,7 +7,6 @@ class MazeApp:
 
         self.size = size
         self.gridHeight = round((self.height - self.margin) / self.size) - self.margin
-        print(self.gridHeight)
 
         self.app = MazeAIGUI(self.width, self.height, self.margin, self.size, 'Maze Project')
         self.app.setGridSize(self.gridHeight, self.gridHeight)
