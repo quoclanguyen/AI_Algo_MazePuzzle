@@ -1,9 +1,9 @@
 from MazeAIGUI import MazeAIGUI
 class MazeApp:
-    def __init__(self, size):
+    def __init__(self, size, width, height):
         self.margin = 1
-        self.width = 1200
-        self.height = 900
+        self.width = width
+        self.height = height
 
         self.size = size
         self.gridHeight = round((self.height - self.margin) / self.size) - self.margin

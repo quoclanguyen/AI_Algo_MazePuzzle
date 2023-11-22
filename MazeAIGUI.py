@@ -19,7 +19,7 @@ class MazeAIGUI:
         pygame.init()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption(self.caption)
-        self.font = pygame.font.Font('font\Comfortaa-Regular.ttf', self.margin * 7)
+        self.font = pygame.font.Font('font\Minecraft.ttf', 17)
     
     def clear_path(self):
         if self.grid.hasGoalPath():
@@ -34,10 +34,6 @@ class MazeAIGUI:
     def handleKeyPress(self, key):
         if key == pygame.K_ESCAPE:
             pygame.quit()
-        if key == pygame.K_s:
-            self.grid.save('.\maze\{}\savedMaze.txt'.format(self.grid.size))
-        if key == pygame.K_l:
-            self.grid.load('.\maze\{}\defaultMaze.txt'.format(self.grid.size))
         if key == pygame.K_f:
             self.grid.fillWall()
         if key == pygame.K_r:
@@ -90,6 +86,8 @@ class MazeAIGUI:
         playerImg = pygame.transform.scale(playerImg, (self.grid.width, self.grid.height))
         goalImg = pygame.image.load("./images/goal.png").convert_alpha()
         goalImg = pygame.transform.scale(goalImg, (self.grid.width, self.grid.height))
+        keyImg = pygame.image.load("./images/key.png").convert_alpha()
+        keyImg = pygame.transform.scale(keyImg, (self.grid.width, self.grid.height))
         for row in range(self.grid.size):
             for col in range(self.grid.size):
                 colorID = self.grid.get(row, col)
@@ -102,12 +100,14 @@ class MazeAIGUI:
                 ]
                 if colorID == self.grid.gpath:
                     continue
-                if colorID != self.grid.goal and colorID != self.grid.start:
-                    pygame.draw.rect(self.screen, color, rect)
+                # if colorID != self.grid.goal and colorID != self.grid.start:
+                pygame.draw.rect(self.screen, color, rect)
                 if colorID == self.grid.start:
                     self.screen.blit(playerImg, rect)
                 if colorID == self.grid.goal:
                     self.screen.blit(goalImg, rect)
+                if colorID == self.grid.key:
+                    self.screen.blit(keyImg, rect)
         pygame.display.flip()
 
     def drawBackground(self):
@@ -128,18 +128,19 @@ class MazeAIGUI:
             "./images/UCS.png",
             "./images/ID.png",
             "./images/Beam.png",
-            "./images/Exit.png",
+            "./images/Load.png",
+            "./images/Save.png",
+            "./images/Exit.png"
         ]
         self.buttons = {}
         for i in range(len(btnNames)):
             algo = btnNames[i].split("/")[-1].split(".")[0]
             self.buttons[algo] = Button(
-                self.width - 340/2, 
-                self.margin + 100 * i, 
+                self.width - 400/2, 
+                self.margin + 70 * i, 
                 btnNames[i],
-                0.5
+                0.4
             )
-        
         self.buttons["Astar"].draw(self.screen, lambda: self.go("Astar"))
         self.buttons["BFS"].draw(self.screen, lambda: self.go("BFS"))
         self.buttons["DFS"].draw(self.screen, lambda: self.go("DFS"))
@@ -147,6 +148,8 @@ class MazeAIGUI:
         self.buttons["UCS"].draw(self.screen, lambda: self.go("UCS"))
         self.buttons["ID"].draw(self.screen, lambda: self.go("ID"))
         self.buttons["Beam"].draw(self.screen, lambda: self.go("Beam"))
+        self.buttons["Load"].draw(self.screen, lambda: self.grid.load('.\maze\{}\defaultMaze.txt'.format(self.grid.size)))
+        self.buttons["Save"].draw(self.screen, lambda: self.grid.save('.\maze\{}\savedMaze.txt'.format(self.grid.size)))
         self.buttons["Exit"].draw(self.screen, self.stop)
     def stop(self):
         self.done = True

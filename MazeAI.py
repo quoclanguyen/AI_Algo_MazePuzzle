@@ -3,7 +3,16 @@ import time
 import pygame
 import numpy as np
 from colors import colors
+
 colorData = colors()
+speed = 0.01
+
+def stimulate(GUI, nei):
+    GUI.grid.set(*nei, GUI.grid.stimulate)
+    rect = calcRect(GUI, nei)
+    time.sleep(speed)
+    pygame.draw.rect(GUI.screen, colorData.gridColors[GUI.grid.stimulate], rect)
+    pygame.display.update()
 
 def calcDirection(pos1, pos2):
     x1, y1 = pos1
@@ -12,15 +21,20 @@ def calcDirection(pos1, pos2):
         return "right" if y2 > y1 else "left"
     return "down" if x2 > x1 else "up"
 
+def calcRect(GUI, current):
+    rect = [
+        GUI.margin + (GUI.margin + GUI.grid.width) * current[1], 
+        GUI.margin + (GUI.margin + GUI.grid.height) * current[0], 
+        GUI.grid.width, 
+        GUI.grid.height
+    ]
+    return rect
+
 def move(GUI, Grid, came_from, current):
+    global speed
     rectList = []
     while current in came_from:
-        rect = [
-            GUI.margin + (GUI.margin + GUI.grid.width) * current[1], 
-            GUI.margin + (GUI.margin + GUI.grid.height) * current[0], 
-            GUI.grid.width, 
-            GUI.grid.height
-        ]
+        rect = calcRect(GUI, current)
         current = came_from[current]
         if Grid.get(current[0], current[1]) != Grid.start and Grid.get(current[0], current[1]) != Grid.key:
             Grid.set(current[0], current[1], Grid.gpath)
@@ -29,7 +43,7 @@ def move(GUI, Grid, came_from, current):
         rectList.append((rect, current))
     rectList.reverse()
     for i in range(len(rectList) - 1):
-        time.sleep(0.03)
+        time.sleep(speed)
         pygame.draw.rect(GUI.screen, colorData.gridColors[Grid.gpath], rectList[i][0])
         playerPath = "./images/player_{}.png".format(calcDirection(rectList[i][1], rectList[i + 1][1]))
         playerImg = pygame.image.load(playerPath).convert_alpha()
@@ -79,12 +93,36 @@ def find_path_with_key(GUI, Grid, algo):
     
     total_moves = sum(algo_details[::2])
     nodes_visited = sum(algo_details[1:2])
-    print("Moves played with {}:".format(algo), total_moves)
-    print("Nodes visited: {}\n".format(nodes_visited))
+    rect = GUI.buttons["Exit"].rect
+    infoX = rect.x - 70
+    infoY = rect.y + 100
+    rect = [
+        infoX,
+        infoY,
+        1000,
+        50
+    ]
+    pygame.draw.rect(GUI.screen, colorData.bgColor, rect)
+    infoMove = GUI.font.render(
+        "Moves played with {}: {}".format(algo, total_moves),
+        True,
+        colorData.darkerPath
+    )
+    GUI.screen.blit(
+        infoMove, 
+        (infoX, infoY))
+    infoMove = GUI.font.render(
+        "Nodes visited: {}".format(nodes_visited),
+        True,
+        colorData.darkerPath
+    )
+    GUI.screen.blit(
+        infoMove, 
+        (infoX, infoY + 20))
 
 def a_star(GUI, Grid, start, end):
     Grid.generateNeighbors()
-            
+    # keys = Grid.findKeys()
     count = 0
     states = PriorityQueue()
     states.put((0, count, start))
@@ -119,6 +157,8 @@ def a_star(GUI, Grid, start, end):
                     count += 1
                     states.put((f_score[nei[0]*Grid.size +nei[1]], count, nei))
                     states_history.add(nei)
+                    if nei != end:
+                        stimulate(GUI, nei)
     return 0, 0
 
 def ucs(GUI, Grid, start, end):
@@ -146,6 +186,8 @@ def ucs(GUI, Grid, start, end):
                     count += 1
                     states.put((g_score[nei[0]*Grid.size + nei[1]], count, nei))
                     states_history.add(nei)
+                    if nei != end:
+                        stimulate(GUI, nei)
     return 0, 0
 
 def bfs(GUI, Grid, start, end):
@@ -173,6 +215,8 @@ def bfs(GUI, Grid, start, end):
                 count += 1
                 states.append((count, nei))
                 states_history.add(nei)
+                if nei != end:
+                    stimulate(GUI, nei)
     return 0, 0
 
 def dfs(GUI, Grid, start, end):
@@ -199,6 +243,8 @@ def dfs(GUI, Grid, start, end):
                 count += 1
                 states.append((count, nei))
                 states_history.add(nei)
+                if nei != end:
+                    stimulate(GUI, nei)
     return 0, 0
 
 def greedy(GUI, Grid, start, end):
@@ -225,6 +271,8 @@ def greedy(GUI, Grid, start, end):
                 count += 1
                 states.put((f_score[nei[0]*Grid.size + nei[1]], count, nei))
                 states_history.add(nei)
+                if nei != end:
+                    stimulate(GUI, nei)
     return 0, 0
 
 def ideep(GUI, Grid, start, end):
@@ -244,7 +292,6 @@ def ideep(GUI, Grid, start, end):
             depth += 1
             if current == end:
                 came_from.pop(start)
-                print("Max depth: ", depth_limit)
                 return move(GUI, Grid, came_from, end), count
             if depth == depth_limit:
                 break
@@ -258,10 +305,12 @@ def ideep(GUI, Grid, start, end):
                     count += 1
                     states.append((count, nei))
                     states_history.add(nei)
+                    if nei != end and nei != start:
+                        stimulate(GUI, nei)
         if len(states) == 0:
             states.append((count, start))
         depth = 0
-        depth_limit += 1
+        depth_limit += depth_limit_max / 5
     return 0, 0
 
 def beam(GUI, Grid, start, end):
@@ -296,6 +345,8 @@ def beam(GUI, Grid, start, end):
                 count += 1
                 states.put((f_score[nei[0]*Grid.size + nei[1]], count, nei))
                 states_history.add(nei)
+                if nei != end:
+                    stimulate(GUI, nei)
         for nei in Grid.neighbors[current_second[0]*Grid.size + current_second[1]]:
             f_score[nei[0]*Grid.size + nei[1]] = heuristics(nei, end)
             if nei not in states_history:
@@ -303,4 +354,6 @@ def beam(GUI, Grid, start, end):
                 count += 1
                 states.put((f_score[nei[0]*Grid.size + nei[1]], count, nei))
                 states_history.add(nei)
+                if nei != end:
+                    stimulate(GUI, nei)
     return 0, 0

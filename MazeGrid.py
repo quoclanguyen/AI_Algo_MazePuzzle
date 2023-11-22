@@ -13,6 +13,7 @@ class MazeGrid:
         self.goal = 3
         self.gpath = 4
         self.key = 5
+        self.stimulate = 6
     def get(self, x, y):
         return int(self.data[x][y])
     def set(self, x, y, value):
@@ -30,7 +31,7 @@ class MazeGrid:
     def setBackPath(self):
         for x in range(self.size):
             for y in range(self.size):
-                if self.get(x, y) == self.gpath:
+                if self.get(x, y) == self.gpath or self.get(x, y) == self.stimulate:
                     self.set(x, y, self.path)
     def findSGPoint(self):
         start, goal = 0, 0

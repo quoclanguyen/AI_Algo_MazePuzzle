@@ -10,8 +10,10 @@ class colors:
             getcolor("#D62828"),
             getcolor("#5DF95D"),
             getcolor("#F48749"),
-            getcolor("#4FBDBA")
+            getcolor("#4FBDBA"),
+            getcolor("#9F959A")
         ]
         self.darkerPath = getcolor("#AE460A")
         self.textFG = getcolor("#284483")
         self.textBG = getcolor("#F48749")
+

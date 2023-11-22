@@ -36,7 +36,7 @@ class HomeGUI:
 
     def drawBackground(self):
         self.screen.fill(colorsData.bgColor)
-        self.font = pygame.font.Font('font\Comfortaa-Regular.ttf', 25)
+        self.font = pygame.font.Font('font\Minecraft.ttf', 20)
         infos = [
             "AI Project - Group 5:",
             "21110837 - Nguyen Quoc Lan",
@@ -46,7 +46,7 @@ class HomeGUI:
         ]
         for i in range(len(infos)):
             if i == len(infos) - 1:
-                self.font = pygame.font.Font('font\Comfortaa-Bold.ttf', 30)
+                self.font = pygame.font.Font('font\Minecraft.ttf', 30)
                 info = self.font.render(infos[i], True, colorsData.gridColors[2])
                 rect.topleft = (
                 (self.width - 279*2.5)//2, 
@@ -72,7 +72,7 @@ class HomeGUI:
             )
             tempTk.destroy()
             return
-        MazeApp(self.size)
+        MazeApp(self.size, self.width, self.height)
         self.drawBackground()
     def exitButton(self):
         self.done = True
@@ -171,7 +171,7 @@ class HomeGUI:
         self.buttons["Size"].draw(self.screen, self.sizeButton)
         self.buttons["Human"].draw(self.screen, self.humanButton)
         self.buttons["AI"].draw(self.screen, self.aiButton)
-        self.font = pygame.font.Font('font\Comfortaa-Regular.ttf', 25)
+        self.font = pygame.font.Font('font\Minecraft.ttf', 25)
         currentSize = self.font.render("Current size: " + str(self.size), True, colorsData.darkerPath)
         
         pygame.display.flip()
