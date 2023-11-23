@@ -15,29 +15,26 @@ class MazeAIGUI:
         self.caption = caption
         self.done = False
         self.clock = pygame.time.Clock()
+        self.depth_limit_max = 0
     def createMainWindow(self):
         pygame.init()
         self.screen = pygame.display.set_mode((self.width, self.height))
         pygame.display.set_caption(self.caption)
-        self.font = pygame.font.Font('font\Minecraft.ttf', 17)
+        self.font = pygame.font.Font('font\Minecraft.ttf', 15)
     
     def clear_path(self):
-        if self.grid.hasGoalPath():
+        if self.grid.hasGoalPath() or self.grid.hasSimulate():
             self.grid.setBackPath()
         self.drawGrid()
 
     def go(self, algo):
         self.clear_path()
-        if (self.grid.hasStartPoint() and self.grid.hasGoalPoint()):
+        if self.grid.hasStartPoint() and self.grid.hasGoalPoint():
             find_path_with_key(self, self.grid, algo)
 
     def handleKeyPress(self, key):
         if key == pygame.K_ESCAPE:
             pygame.quit()
-        if key == pygame.K_f:
-            self.grid.fillWall()
-        if key == pygame.K_r:
-            self.grid.fillPath()
     def mouseInGrid(self, x, y):
         return (x < self.grid.size) and (y < self.grid.size)
     
@@ -46,7 +43,7 @@ class MazeAIGUI:
         if not self.mouseInGrid(x, y):
             return
         
-        if self.grid.hasGoalPath():
+        if self.grid.hasStartPoint() and self.grid.hasGoalPoint():
             self.grid.setBackPath()
         # Set grid value
         self.grid.set(x, y, self.grid.wall)
@@ -56,7 +53,7 @@ class MazeAIGUI:
         if not self.mouseInGrid(x, y):
             return
         
-        if self.grid.hasGoalPath():
+        if self.grid.hasStartPoint() and self.grid.hasGoalPoint():
             self.grid.setBackPath()
         # Set grid value
         if self.grid.get(x, y) in [self.grid.start, self.grid.goal]:
@@ -115,6 +112,19 @@ class MazeAIGUI:
 
     def setGridSize(self, gwidth, gheight):
         self.grid.width, self.grid.height = gwidth, gheight
+    
+    def depth_limit(self, direction):
+        temp_depth = self.depth_limit_max
+        bound = self.grid.size ** 2
+        pygame.time.delay(100)
+        if direction == "up":
+            temp_depth += int(bound / 5)
+            if (temp_depth <= bound):
+                self.depth_limit_max = temp_depth
+            return
+        temp_depth -= int(bound / 5)
+        if (temp_depth >= 0):
+            self.depth_limit_max = temp_depth
 
     def astarButton(self):
         self.go("Astar")
@@ -130,6 +140,7 @@ class MazeAIGUI:
             "./images/Beam.png",
             "./images/Load.png",
             "./images/Save.png",
+            "./images/Clear.png",
             "./images/Exit.png"
         ]
         self.buttons = {}
@@ -137,20 +148,52 @@ class MazeAIGUI:
             algo = btnNames[i].split("/")[-1].split(".")[0]
             self.buttons[algo] = Button(
                 self.width - 400/2, 
-                self.margin + 70 * i, 
+                self.margin + 50 * i, 
                 btnNames[i],
-                0.4
+                0.37
             )
+        self.buttons["Up"] = Button(
+            self.buttons["ID"].rect.x - 30,
+            self.buttons["ID"].rect.y,
+            "./images/Up.png",
+            0.37)
+        self.buttons["Down"] = Button(
+            self.buttons["ID"].rect.x - 30,
+            self.buttons["ID"].rect.bottom - 63*0.37,
+            "./images/Down.png",
+            0.37)
         self.buttons["Astar"].draw(self.screen, lambda: self.go("Astar"))
         self.buttons["BFS"].draw(self.screen, lambda: self.go("BFS"))
         self.buttons["DFS"].draw(self.screen, lambda: self.go("DFS"))
         self.buttons["Greedy"].draw(self.screen, lambda: self.go("Greedy"))
         self.buttons["UCS"].draw(self.screen, lambda: self.go("UCS"))
         self.buttons["ID"].draw(self.screen, lambda: self.go("ID"))
+        self.buttons["Up"].draw(self.screen, lambda: self.depth_limit("up"))
+        self.buttons["Down"].draw(self.screen, lambda: self.depth_limit("down"))
         self.buttons["Beam"].draw(self.screen, lambda: self.go("Beam"))
         self.buttons["Load"].draw(self.screen, lambda: self.grid.load('.\maze\{}\defaultMaze.txt'.format(self.grid.size)))
+        self.buttons["Clear"].draw(self.screen, lambda: self.grid.fillPath())
         self.buttons["Save"].draw(self.screen, lambda: self.grid.save('.\maze\{}\savedMaze.txt'.format(self.grid.size)))
         self.buttons["Exit"].draw(self.screen, self.stop)
+
+        rect = self.buttons["ID"].rect
+        infoX = rect.x - 150
+        infoY = rect.centery
+        rect = [
+            infoX,
+            infoY,
+            120,
+            100
+        ]
+        pygame.draw.rect(self.screen, colorsData.bgColor, rect)
+        depthInfo = self.font.render(
+            "d_max = {}".format(self.depth_limit_max),
+            True,
+            colorsData.darkerPath
+        )
+        self.screen.blit(
+            depthInfo, 
+            (infoX, infoY))
     def stop(self):
         self.done = True
     def mainLoop(self):

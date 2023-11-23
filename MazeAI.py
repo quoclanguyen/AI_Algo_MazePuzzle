@@ -1,13 +1,12 @@
 from queue import PriorityQueue
-import time
 import pygame
 import numpy as np
 from colors import colors
 
 colorData = colors()
-speed = 0.005
+speed = 1
 
-def stimulate(GUI, nei):
+def simulate(GUI, nei):
     cur = GUI.grid.get(*nei)
     if cur == GUI.grid.start:
         return
@@ -15,10 +14,10 @@ def stimulate(GUI, nei):
         return
     if cur == GUI.grid.key:
         return
-    GUI.grid.set(*nei, GUI.grid.stimulate)
+    GUI.grid.set(*nei, GUI.grid.simulate)
     rect = calcRect(GUI, nei)
-    time.sleep(speed)
-    pygame.draw.rect(GUI.screen, colorData.gridColors[GUI.grid.stimulate], rect)
+    pygame.time.wait(speed)
+    pygame.draw.rect(GUI.screen, colorData.gridColors[GUI.grid.simulate], rect)
     pygame.display.update()
 
 def calcDirection(pos1, pos2):
@@ -48,7 +47,7 @@ def move(GUI, Grid, came_from, current):
         rectList.append((rect, current))
     rectList.reverse()
     for i in range(len(rectList) - 1):
-        time.sleep(speed)
+        pygame.time.wait(speed)
         pygame.draw.rect(GUI.screen, colorData.gridColors[Grid.gpath], rectList[i][0])
         playerPath = "./images/player_{}.png".format(calcDirection(rectList[i][1], rectList[i + 1][1]))
         playerImg = pygame.image.load(playerPath).convert_alpha()
@@ -83,6 +82,7 @@ def find_path_with_key(GUI, Grid, algo):
     algo_details = []
     nodes_details = 0
     total_moves = 0
+    time_start = pygame.time.get_ticks()
     if len(keys) != 2:
         Grid.set(*end, Grid.wall)
         i = 0
@@ -107,8 +107,11 @@ def find_path_with_key(GUI, Grid, algo):
                 total_moves += move(GUI, Grid, algo_details[i], e)
     else:
         trace = globals()[algo_name[algo]](GUI, Grid, start, end)
-        total_moves += move(GUI, Grid, trace[0], end)
-        nodes_details += trace[1]
+        if trace != (0, 0):
+            total_moves += move(GUI, Grid, trace[0], end)
+            nodes_details += trace[1]
+    time_end = pygame.time.get_ticks()
+    runtime = time_end - time_start
     rect = GUI.buttons["Exit"].rect
     infoX = rect.x - 70
     infoY = rect.y + 100
@@ -116,7 +119,7 @@ def find_path_with_key(GUI, Grid, algo):
         infoX,
         infoY,
         1000,
-        50
+        100
     ]
     pygame.draw.rect(GUI.screen, colorData.bgColor, rect)
     infoMove = GUI.font.render(
@@ -135,6 +138,14 @@ def find_path_with_key(GUI, Grid, algo):
     GUI.screen.blit(
         infoMove, 
         (infoX, infoY + 20))
+    infoMove = GUI.font.render(
+        "Total time: {} seconds".format(runtime/1000),
+        True,
+        colorData.darkerPath
+    )
+    GUI.screen.blit(
+        infoMove, 
+        (infoX, infoY + 40))
 
 def a_star(GUI, Grid, start, end):
     Grid.generateNeighbors()
@@ -174,7 +185,7 @@ def a_star(GUI, Grid, start, end):
                     states.put((f_score[nei[0]*Grid.size +nei[1]], count, nei))
                     states_history.add(nei)
                     if nei != end:
-                        stimulate(GUI, nei)
+                        simulate(GUI, nei)
     return 0, 0
 
 def ucs(GUI, Grid, start, end):
@@ -203,7 +214,7 @@ def ucs(GUI, Grid, start, end):
                     states.put((g_score[nei[0]*Grid.size + nei[1]], count, nei))
                     states_history.add(nei)
                     if nei != end:
-                        stimulate(GUI, nei)
+                        simulate(GUI, nei)
     return 0, 0
 
 def bfs(GUI, Grid, start, end):
@@ -232,7 +243,7 @@ def bfs(GUI, Grid, start, end):
                 states.append((count, nei))
                 states_history.add(nei)
                 if nei != end:
-                    stimulate(GUI, nei)
+                    simulate(GUI, nei)
     return 0, 0
 
 def dfs(GUI, Grid, start, end):
@@ -248,7 +259,9 @@ def dfs(GUI, Grid, start, end):
         if current == end:
             came_from.pop(start)
             return came_from, count
-        for nei in Grid.neighbors[current[0]*Grid.size + current[1]]: # grid around current point
+        neis = Grid.neighbors[current[0]*Grid.size + current[1]]
+        np.random.shuffle(neis)
+        for nei in neis: # grid around current point
             if (nei in came_from):
                 if (came_from[nei] not in came_from):
                     came_from[nei] = current
@@ -260,7 +273,7 @@ def dfs(GUI, Grid, start, end):
                 states.append((count, nei))
                 states_history.add(nei)
                 if nei != end:
-                    stimulate(GUI, nei)
+                    simulate(GUI, nei)
     return 0, 0
 
 def greedy(GUI, Grid, start, end):
@@ -288,7 +301,7 @@ def greedy(GUI, Grid, start, end):
                 states.put((f_score[nei[0]*Grid.size + nei[1]], count, nei))
                 states_history.add(nei)
                 if nei != end:
-                    stimulate(GUI, nei)
+                    simulate(GUI, nei)
     return 0, 0
 
 def ideep(GUI, Grid, start, end):
@@ -300,7 +313,7 @@ def ideep(GUI, Grid, start, end):
     came_from = {}
     depth = 0
     depth_limit = 2
-    depth_limit_max = (Grid.size ** 2)
+    depth_limit_max = GUI.depth_limit_max
     while depth_limit <= depth_limit_max:
         states_history.clear()
         while len(states) != 0:
@@ -311,7 +324,9 @@ def ideep(GUI, Grid, start, end):
                 return came_from, count
             if depth == depth_limit:
                 break
-            for nei in Grid.neighbors[current[0]*Grid.size + current[1]]:
+            neis = Grid.neighbors[current[0]*Grid.size + current[1]]
+            np.random.shuffle(neis)
+            for nei in neis:
                 if (nei in came_from):
                     if (came_from[nei] not in came_from):
                         came_from[nei] = current
@@ -322,7 +337,7 @@ def ideep(GUI, Grid, start, end):
                     states.append((count, nei))
                     states_history.add(nei)
                     if nei != end and nei != start:
-                        stimulate(GUI, nei)
+                        simulate(GUI, nei)
         if len(states) == 0:
             states.append((count, start))
         depth = 0
@@ -362,7 +377,7 @@ def beam(GUI, Grid, start, end):
                 states.put((f_score[nei[0]*Grid.size + nei[1]], count, nei))
                 states_history.add(nei)
                 if nei != end:
-                    stimulate(GUI, nei)
+                    simulate(GUI, nei)
         for nei in Grid.neighbors[current_second[0]*Grid.size + current_second[1]]:
             f_score[nei[0]*Grid.size + nei[1]] = heuristics(nei, end)
             if nei not in states_history:
@@ -371,5 +386,5 @@ def beam(GUI, Grid, start, end):
                 states.put((f_score[nei[0]*Grid.size + nei[1]], count, nei))
                 states_history.add(nei)
                 if nei != end:
-                    stimulate(GUI, nei)
+                    simulate(GUI, nei)
     return 0, 0
