@@ -35,6 +35,11 @@ class MazeGrid:
             for y in range(self.size):
                 if self.get(x, y) == self.gpath or self.get(x, y) == self.simulate:
                     self.set(x, y, self.path)
+    def setBackPathForHuman(self):
+        for x in range(self.size):
+            for y in range(self.size):
+                if self.get(x, y) == self.start or self.get(x, y) == self.goal:
+                    self.set(x, y, self.path)
     def findSGPoint(self):
         start, goal = 0, 0
         for x in range(self.size):

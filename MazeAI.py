@@ -6,6 +6,12 @@ from colors import colors
 colorData = colors()
 speed = 1
 
+def abortCatch():
+    for event in pygame.event.get(): 
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                return True
+
 def simulate(GUI, nei):
     cur = GUI.grid.get(*nei)
     if cur == GUI.grid.start:
@@ -170,6 +176,8 @@ def a_star(GUI, Grid, start, end):
     f_score[start[0]*Grid.size + start[1]] = heuristics(start, end)
 
     while not states.empty():
+        if abortCatch():
+            return (0, 0)
         current = states.get()[2] # start point
         states_history.remove(current)
         if current == end:
@@ -201,6 +209,8 @@ def ucs(GUI, Grid, start, end):
     g_score[start[0] * Grid.size + start[1]] = 0
 
     while not states.empty():
+        if abortCatch():
+            return (0, 0)
         current = states.get()[2] # start point
         if current == end:
             return came_from, count
@@ -227,6 +237,8 @@ def bfs(GUI, Grid, start, end):
     came_from = {}
 
     while len(states) != 0:
+        if abortCatch():
+            return (0, 0)
         current = states.pop(0)[1]
         if current == end:
             came_from.pop(start)
@@ -255,6 +267,8 @@ def dfs(GUI, Grid, start, end):
     came_from = {}
 
     while len(states) != 0:
+        if abortCatch():
+            return (0, 0)
         current = states.pop()[1]
         if current == end:
             came_from.pop(start)
@@ -289,6 +303,8 @@ def greedy(GUI, Grid, start, end):
     f_score[start[0]*Grid.size + start[1]] = heuristics(start, end)
 
     while not states.empty():
+        if abortCatch():
+            return (0, 0)
         current = states.get()[2] # start point
         if current == end:
             came_from.pop(start, None)
@@ -315,8 +331,12 @@ def ideep(GUI, Grid, start, end):
     depth_limit = 2
     depth_limit_max = GUI.depth_limit_max
     while depth_limit <= depth_limit_max:
+        if abortCatch():
+            return (0, 0)
         states_history.clear()
         while len(states) != 0:
+            if abortCatch():
+                return (0, 0)
             current = states.pop()[1]
             depth += 1
             if current == end:
@@ -358,6 +378,8 @@ def beam(GUI, Grid, start, end):
     f_score[start[0]*Grid.size + start[1]] = heuristics(start, end)
 
     while not states.empty():
+        if abortCatch():
+            return (0, 0)
         current_first = states.get()[2] # start point
         if states.qsize() < 2: 
             current_second = current_first

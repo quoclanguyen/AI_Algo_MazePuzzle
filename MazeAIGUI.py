@@ -32,9 +32,6 @@ class MazeAIGUI:
         if self.grid.hasStartPoint() and self.grid.hasGoalPoint():
             find_path_with_key(self, self.grid, algo)
 
-    def handleKeyPress(self, key):
-        if key == pygame.K_ESCAPE:
-            pygame.quit()
     def mouseInGrid(self, x, y):
         return (x < self.grid.size) and (y < self.grid.size)
     
@@ -126,9 +123,6 @@ class MazeAIGUI:
         if (temp_depth >= 0):
             self.depth_limit_max = temp_depth
 
-    def astarButton(self):
-        self.go("Astar")
-
     def drawButtons(self):
         btnNames = [
             "./images/Astar.png",
@@ -211,8 +205,6 @@ class MazeAIGUI:
             for event in pygame.event.get(): 
                 if event.type == pygame.QUIT:
                     self.done = True
-                elif event.type == pygame.KEYDOWN:
-                    self.handleKeyPress(event.key)
                 elif pygame.mouse.get_pressed()[LEFT_MOUSE]:
                     self.handleLeftMousePress(col, row)
                 elif pygame.mouse.get_pressed()[MID_MOUSE]:

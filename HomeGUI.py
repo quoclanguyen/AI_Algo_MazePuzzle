@@ -72,7 +72,8 @@ class HomeGUI:
             )
             tempTk.destroy()
             return
-        MazeApp(self.size, self.width, self.height)
+        mode = "ai" if self.ai else "human"
+        MazeApp(self.size, self.width, self.height, mode)
         self.drawBackground()
     def exitButton(self):
         self.done = True
