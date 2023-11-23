@@ -1,4 +1,4 @@
 TODO:
 + Add max depth in ID algorithm
-+ Visualize node visited
+/+ Visualize node visited
 + Human
